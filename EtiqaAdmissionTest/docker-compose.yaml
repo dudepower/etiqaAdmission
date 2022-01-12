@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  db:
+    image: 'mysql/mysql-server:latest'
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=admission
+      - MYSQL_DATABASE=admission
+      - MYSQL_USER=admission
+      - MYSQL_PASSWORD=admission
+      - MYSQL_ROOT_HOST=%
+    networks:
+      - my_network
+
+
+  backendserver:
+    build:
+      context: ./
+      dockerfile: ./admissionbuild/backend/Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_USER=admission
+      - DB_PASSWORD=admission
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - JAVA_DEBUG="true"
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:5005:5005"
+    links:
+      - "db"
+    depends_on:
+      - "db"
+    networks:
+      - my_network
+    restart: always
+
+
+#  frontend:
+#    build: ./CRUD/
+#    links:
+#      - "backendserver"
+#    depends_on:
+#      - "backendserver"
+#    ports:
+#      - "80:80"
+
+networks:
+  my_network:
+    driver: bridge
